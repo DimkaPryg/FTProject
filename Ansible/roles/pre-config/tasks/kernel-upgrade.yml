@@ -1,0 +1,30 @@
+---
+- name: Ensure directory exists
+  file:
+    path: "/kernel"
+    state: directory
+    mode: "0774"
+  become: true
+
+- name: Download kernel debs
+  get_url:
+    url: "{{ item }}"
+    dest: /kernel
+  loop: "{{ kernel_urls }}"
+  become: true
+
+- name: Install new version of kernel
+  shell: dpkg -i /kernel/*.deb
+  become: true
+
+- name: Reboot machine
+  reboot:
+  become: true
+ 
+
+
+
+  
+
+    
+

@@ -1,0 +1,127 @@
+---
+- name: Enable IP forwarding (no reboot required)
+  shell: "sudo echo 1 > /proc/sys/net/ipv4/ip_forward"
+  become: true
+
+- name: Enable IP forwarding (permanent)
+  lineinfile:
+    path: "/etc/sysctl.conf"
+    regexp: "#net.ipv4.ip_forward=1"
+    line: "net.ipv4.ip_forward=1"
+    state: present
+  become: true
+
+- name: Add delay 100ms between WB and ROUTER machines
+  shell: "sudo tc qdisc add dev enp0s8 root netem delay 100ms"
+  become: true
+
+- name: Manage network access (udp)
+  ansible.builtin.iptables:
+    in_interface: enp0s3
+    chain: INPUT
+    protocol: udp
+    destination_ports:
+      - "53"
+      - "67"
+    jump: ACCEPT
+  become: true
+
+- name: Manage network access (tcp)
+  ansible.builtin.iptables:
+    in_interface: enp0s3
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "53"
+      - "22"
+    jump: ACCEPT
+  become: true
+
+- name: DB, Node-exporter forward (dest. ports)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    protocol: tcp
+    destination_ports:
+      - "9100"
+      - "5432"
+      - "9090"
+    jump: ACCEPT
+  become: true
+
+- name: DB, Node-exporter forward (source ports)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    protocol: tcp
+    source_port: "{{ item }}"
+    jump: ACCEPT
+  loop:
+    - "9100"
+    - "9090"
+    - "5432"
+  become: true
+
+- name: Manage network access (tcp)
+  ansible.builtin.iptables:
+    in_interface: enp0s9
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "9100"
+    jump: ACCEPT
+  become: true
+
+- name: Allow lo conections
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+  become: yes
+
+- name: Allow related and established connections
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+  become: yes
+
+- name: Set the policy for the INPUT chain to DROP
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: DROP
+  become: true
+
+- name: Set the policy for the FORWARD chain to DROP
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: DROP
+  become: true
+
+- name: Ensure directories exists
+  file:
+    path: "{{ iptables_dir }}"
+    state: directory
+    owner: root
+    group: root
+  become: true
+
+- name: "Deploy {{inventory_hostname}}-iptables.sh"
+  copy: 
+    src: files/{{inventory_hostname}}-iptables.sh
+    dest: "{{ iptables_dir }}"
+    owner: root
+    group: root
+  become: true
+
+- name: Create iptpers.service
+  ansible.builtin.template:
+    src: templates/iptpers.service
+    dest: /etc/systemd/system/iptpers.service
+    mode: 0755
+  become: true
+
+- name: Enable iptpers.service
+  ansible.builtin.systemd:
+    name: iptpers
+    enabled: yes
+    daemon_reload: yes
+  become: true

@@ -1,0 +1,13 @@
+[Unit]
+Description=asdasd
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash {{ scripts_dir }}/secondscript.sh
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/iptables
+Restart=on-failure

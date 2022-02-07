@@ -1,0 +1,14 @@
+---
+- name: Install grafana
+  apt:
+    deb: "{{grafana_download_url}}"
+  become: true
+
+- name: Start and enable grafana-server
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+    daemon_reload: no
+  become: true
+

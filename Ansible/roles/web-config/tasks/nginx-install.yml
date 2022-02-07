@@ -1,0 +1,72 @@
+---
+# Install NGINX Unit
+- name: Download and save NGINX’s signing key
+  apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+  become: true
+
+- name: Setup main repo
+  apt_repository: repo='deb https://packages.nginx.org/unit/ubuntu/ focal unit' state=present
+  become: true
+
+- name: Setup source rep
+  apt_repository: repo='deb-src https://packages.nginx.org/unit/ubuntu/ focal unit' state=present
+  become: true
+
+- name: Install packages
+  apt:
+    name: 
+      - nginx
+      - unit
+      - unit-python3.8
+      - python3-psycopg2
+      - python3.8-venv
+    state: latest
+    update_cache: yes
+  become: true
+
+- name: Deploy nginx config
+  template: 
+    src: templates/default
+    dest: /etc/nginx/sites-available/default
+    mode: 0774
+  become: true
+
+- name: Ensure {{certs_directory}} directory exists
+  file:
+    path: "{{certs_directory}}"
+    state: directory
+  become: true
+
+- name: Generate an OpenSSL private key.
+  openssl_privatekey:
+    path: "{{certs_directory}}/devcert.pem"
+  become: true
+
+- name: Generate an OpenSSL CSR.
+  openssl_csr:
+    path: "{{certs_directory}}/devcert.csr"
+    privatekey_path: "{{certs_directory}}/devcert.pem"
+    common_name: "devcert"
+  become: true
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: "{{certs_directory}}/devcert.crt"
+    privatekey_path: "{{certs_directory}}/devcert.pem"
+    csr_path: "{{certs_directory}}/devcert.csr"
+    provider: selfsigned
+  become: true
+
+- name: Ngingx enable
+  systemd:
+    name: nginx
+    enabled: yes
+    state: restarted
+  become: true
+
+- name: Ngingx unit enable
+  systemd:
+    name: unit
+    enabled: yes
+    state: started
+  become: true

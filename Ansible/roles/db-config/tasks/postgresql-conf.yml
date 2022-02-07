@@ -1,0 +1,59 @@
+---
+- name: "Create a new database {{ db_name }}"
+  postgresql_db:
+    name: "{{ db_name }}"
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: "Create a new user {{ db_user }}"
+  postgresql_user:
+    state: present
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+  become: yes
+  become_user: postgres
+
+- name: ALTER DEFAULT PRIVILEGES ON DATABASE library TO reader, step 1
+  community.postgresql.postgresql_privs:
+    db: "{{ db_name }}"
+    objs: TABLES,SEQUENCES
+    privs: ALL
+    type: default_privs
+    role: "{{ db_user }}"
+  become: yes
+  become_user: postgres
+
+# - name: "Grant {{ db_user }} access to the {{ db_name }}"
+#   postgresql_privs:
+#     type: database
+#     database: "{{ db_name }}"
+#     roles: "{{ db_user }}"
+#     privs: all
+#   become: yes
+#   become_user: postgres
+
+- name: Set listen addresses
+  lineinfile:
+    path: "{{pg_path}}/postgresql.conf"
+    regexp: "listen_addresses ="
+    line: "listen_addresses = '*'"
+    state: present
+  become: true
+
+- name: Allow connection
+  postgresql_pg_hba:
+    dest: "{{ pg_conf_path }}"
+    contype: host
+    databases: "{{db_name}}"
+    method: md5
+    users: "{{ db_user }}"
+    source: all
+  become: yes
+  become_user: postgres
+
+- name: Restart postgres
+  service:
+    name: "{{pg_service_name}}"
+    state: restarted
+  become: true

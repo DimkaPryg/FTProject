@@ -1,0 +1,22 @@
+---
+- name: Ensure directories exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0774
+  loop:
+    - "{{ scripts_dir }}"
+    - "{{ backups_dir }}"
+    - "{{ files_dir }}"
+  become: true
+
+- name: First script deploy
+  include_tasks: first-script.yml
+
+- name: Second script deploy
+  include_tasks: second-script.yml
+
+- name: Python script deploy
+  include_tasks: python-script.yml

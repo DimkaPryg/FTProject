@@ -1,0 +1,6 @@
+---
+- name:
+  include_tasks: lvm-config.yml
+
+- name:
+  include_tasks: raid-config.yml

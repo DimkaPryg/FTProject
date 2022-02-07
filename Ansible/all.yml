@@ -1,0 +1,23 @@
+---
+# - name: Router server
+#   hosts: router
+#   roles:
+#     - pre-config
+#     - node-exporter
+
+# - name: DataBase server
+#   hosts: db
+#   roles:
+#     - pre-config
+#     - db-config
+#     - node-exporter
+#     - disk-config
+
+- name: Web server
+  hosts: web
+  roles:
+    - pre-config
+    - web-config
+    - node-exporter
+    - grafana-install
+    - scripts-deploy

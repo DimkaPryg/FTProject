@@ -1,0 +1,10 @@
+---
+- name: Deploy first script
+  copy: 
+    src: files/firstscript.sh
+    dest: "{{ scripts_dir }}"
+    owner: root
+    group: root
+    mode: 0774
+  become: true
+

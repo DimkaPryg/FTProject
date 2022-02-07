@@ -1,0 +1,64 @@
+---
+- name: Ensure group {{prometheus_user_group}} exists
+  group:
+    name: "{{prometheus_user_group}}"
+    state: present
+  become: true
+
+- name: Add user {{prometheus_user}}  
+  user:
+    name: "{{prometheus_user}}"
+    groups: "{{prometheus_user_group}}"
+    shell: /sbin/nologin
+    append: yes
+    comment: "Prometheus nologin user"
+    state: present
+  become: true
+
+- name: Ensure {{prometheus_directory}} directory exists
+  file:
+    path: "{{prometheus_directory}}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+  become: true
+
+- name: Ensure {{prometheus_directory_data}} directory exists
+  file:
+    path: "{{prometheus_directory_data}}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+  become: true
+
+- name: Download and unarchive prometheus
+  ansible.builtin.unarchive:
+    src: "{{prometheus_download_url}}"
+    dest: "{{prometheus_directory}}"
+    remote_src: yes
+    owner: prometheus
+    group: prometheus
+    extra_opts: [--strip-components=1]
+  become: true
+
+- name: Create prometheus.service
+  ansible.builtin.template: 
+    src: templates/prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+    mode: 0755
+  become: true
+
+- name: Create config prometheus.yml
+  ansible.builtin.template: 
+    src: templates/prometheus.yml
+    dest: "{{prometheus_directory}}"
+    owner: prometheus
+  become: true
+
+- name: Start and enable prometheus.service
+  ansible.builtin.systemd:
+    name: prometheus
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: true

@@ -1,0 +1,84 @@
+def nat(config)
+	config.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--nic3", "nat", "--nictype2", "82540EM"]
+		v.customize ["modifyvm", :id, "--natpf3", "guestssh, tcp, ,10024, ,22"]
+		v.customize ["modifyvm", :id, "--natpf3", "grafana, tcp, ,13000, ,3000"]
+	end
+end
+
+Vagrant.configure("2") do |config|
+	
+	#Web machine configuration
+	config.vm.define "web" do |web|
+			nat(web)
+			web.vm.box = "ubuntu/focal64"
+			web.vm.network "forwarded_port", id: "httpd", host: 10090, guest: 80, adapter: 1
+			web.vm.network "forwarded_port", id: "https", host: 10091, guest: 443, adapter: 1
+			web.vm.network "private_network", ip: "192.168.5.2", virtualbox__intnet: "int-web", adapter: 2
+			web.vm.hostname = "web"
+
+			web.vm.provision "shell" do |sh|
+				ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+				sh.inline = <<-SHELL
+				echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+				SHELL
+			end
+
+			web.vm.provider "virtualbox" do |vb|
+				vb.name = "web"
+				vb.memory = 2048
+				vb.cpus = 1
+			end
+		end
+		
+	# Router machine configuration
+	config.vm.define "router" do |router|
+			router.vm.box = "ubuntu/focal64"
+			router.vm.network "forwarded_port", id: "ssh", host: 10022, guest: 22
+			router.vm.network "private_network", ip: "192.168.5.1", virtualbox__intnet: "int-web"
+			router.vm.network "private_network", ip: "192.168.6.1", virtualbox__intnet: "int-db"
+			router.vm.hostname = "router"
+
+			router.vm.provision "shell" do |sh|
+				ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+				sh.inline = <<-SHELL
+				echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+				SHELL
+			end
+
+			router.vm.provider "virtualbox" do |vb|
+				vb.name = "router"
+				vb.memory = 2048
+				vb.cpus = 1
+			end
+		end
+
+	# DB machine configuration	
+	ENV['VAGRANT_EXPERIMENTAL'] = "1"
+	config.vm.define "db" do |db|
+			db.vm.box = "ubuntu/focal64"
+			db.vm.network "forwarded_port", id: "ssh", host: 10023, guest: 22
+			db.vm.network "forwarded_port", id: "pg", host: 15432, guest: 5432
+			db.vm.network "private_network", ip: "192.168.6.2", virtualbox__intnet: "int-db"
+			db.vm.hostname = "db"
+			# LVM disks
+			db.vm.disk :disk, size: "5GB", name: "LVM_storage_1"
+			db.vm.disk :disk, size: "5GB", name: "LVM_storage_2"
+			# RAID disks
+			db.vm.disk :disk, size: "6GB", name: "RAID_storage_1"
+			db.vm.disk :disk, size: "6GB", name: "RAID_storage_2"
+
+			db.vm.provision "shell" do |sh|
+				ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+				sh.inline = <<-SHELL
+				echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+				SHELL
+			end
+
+			db.vm.provider "virtualbox" do |vb|
+				vb.name = "db"
+				vb.memory = 2048
+				vb.cpus = 1
+			end
+		end
+end

@@ -1,0 +1,17 @@
+{
+    "listeners": {
+        "*:{{app_port}}": {
+            "pass": "applications/fastapi"
+        }
+    },
+
+    "applications": {
+        "fastapi": {
+            "type": "python 3.8",
+            "path": "/var/www/app/",
+            "home": "/var/www/app/venv",
+            "module": "main",
+            "callable": "app"
+        }
+    }
+}

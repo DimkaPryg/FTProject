@@ -1,0 +1,12 @@
+[cluster]
+db ansible_ssh_host=192.168.6.2 ansible_user=vagrant
+web ansible_ssh_host=192.168.5.2 ansible_user=vagrant
+router ansible_ssh_host=192.168.5.1 ansible_user=vagrant
+
+[cluster:vars]
+db_name=magazine
+db_user=ugly
+db_password=betty
+
+[local]
+host ansible_ssh_host=127.0.0.1 ansible_connection=local

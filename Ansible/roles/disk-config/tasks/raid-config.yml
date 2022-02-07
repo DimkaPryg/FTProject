@@ -1,0 +1,44 @@
+---
+- name: Create a new partitions for raid 
+  parted:
+    device: "{{ item }}"
+    number: 1
+    state: present
+  loop:
+    - /dev/sde
+    - /dev/sdf
+  become: true
+
+- name: Install mdadm
+  package:
+    name: mdadm
+    state: present
+  become: true
+  
+- name: Create raid array
+  shell: "mdadm --create /dev/md0 -a yes -l 5 -n 2 /dev/sde1 /dev/sdf1"
+  become: true
+
+- name: Ensure /local/backups directory exists
+  file:
+    path: "/local/backups"
+    state: directory
+    owner: root
+    group: root
+    mode: 0774
+  become: true
+
+- name: Format xfs filesystem
+  filesystem:
+    fstype: xfs
+    dev: "/dev/md0"
+  become: true
+
+- name: Mount /local/backups
+  mount:
+    fstype: xfs
+    src: "/dev/md0"
+    path: /local/backups
+    state: mounted
+  become: true
+  

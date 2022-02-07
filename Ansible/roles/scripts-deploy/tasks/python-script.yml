@@ -1,0 +1,37 @@
+---
+- name: Install packages
+  apt:
+    name: 
+      - pip
+      - python3-psycopg2
+      - python3.8-venv
+    state: latest
+    update_cache: yes
+  become: true
+
+- name: Install python packages
+  pip:
+    name:
+      - dominate
+      - requests
+      - psycopg2-binary
+  become: true
+
+- name: Deploy python script
+  copy: 
+    src: files/pythonscript.py
+    dest: "{{ scripts_dir }}"
+    owner: root
+    group: root
+    mode: 0774
+  become: true
+
+- name: Add job to cron
+  cron:
+    name: "Generate HTML page"
+    minute: "*/5"
+    user: root
+    job: "{{ scripts_dir }}/pythonscript.py"
+    state: present
+  become: true
+

@@ -1,0 +1,14 @@
+---
+pg_version: 12
+pg_path: "/etc/postgresql/{{ pg_version }}/main"
+pg_conf_path: "{{pg_path}}/pg_hba.conf"
+pg_service_name: postgresql@{{ pg_version }}-main
+
+prometheus_user_group: prometheus
+prometheus_user: prometheus
+prometheus_directory: /opt/prometheus/
+prometheus_directory_data: /opt/prometheus/data
+prometheus_version: 2.32.1
+prometheus_download_url: https://github.com/prometheus/prometheus/releases/download/v{{prometheus_version}}/prometheus-{{prometheus_version}}.linux-amd64.tar.gz
+
+monitoring_servers: ["web:9100", "db:9100", "router:9100"]

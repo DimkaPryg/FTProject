@@ -1,0 +1,21 @@
+---
+- name: Install PostgreSQL {{pg_version}}
+  package:
+    name:
+      - acl # чтобы не было ошибки
+      - libpq-dev
+      # - ca-certificates
+      - python3-pycurl
+      - python3-psycopg2
+      - postgresql-{{ pg_version }}
+      # - postgresql-server-dev-{{ pg_version }}
+    state: present
+    update_cache: yes
+  register: install_package
+  become: true
+
+- name: Enable PostgreSQL {{pg_version}}
+  service:
+    name: "{{pg_service_name}}"
+    state: started
+    enabled: yes

@@ -1,0 +1,71 @@
+---
+- name: Ensure {{app_directory}} directory exists
+  file:
+    path: "{{app_directory}}"
+    state: directory
+    owner: unit
+    group: unit
+    mode: "{{app_file_mode}}"
+  become: true
+
+- name: Deploy webapp
+  copy: 
+    src: templates/webapp/
+    dest: "{{app_directory}}"
+    owner: unit
+    group: unit
+    mode: "{{app_file_mode}}"
+    directory_mode: yes
+  become: true
+
+- name: Change app directory mode
+  file:
+    path: "{{app_directory}}"
+    state: directory
+    owner: unit
+    group: unit
+    mode: "{{app_file_mode}}"
+    recurse: yes
+  become: true
+
+- name: Filling template database.py 
+  template: 
+    src: templates/webapp/database.py
+    dest: "{{app_directory}}/database.py"
+    owner: unit
+    group: unit
+    mode: "{{app_file_mode}}"
+  become: true
+
+- name: Filling template main.py 
+  template: 
+    src: templates/webapp/main.py
+    dest: "{{ app_directory }}/main.py"
+    owner: unit
+    group: unit
+    mode: "{{ app_file_mode }}"
+  become: true
+
+- name: Deploy config file for Nginx unit
+  template: 
+    src: templates/config.json
+    dest: "{{app_directory}}/config.json"
+    owner: unit
+    group: unit
+    mode: "{{app_file_mode}}"
+  become: true
+
+- name: Install requirements and create venv
+  pip:
+    name:
+      - fastapi
+      - sqlalchemy
+      - psycopg2-binary
+    virtualenv: "{{app_directory}}/venv"
+    virtualenv_command: /usr/bin/python3 -m venv
+  become: true
+
+# Must be a connection to the database
+- name: Add config Nginx unit
+  command: "sudo curl -X PUT --data-binary @/var/www/app/config.json --unix-socket /var/run/control.unit.sock http://localhost/config/"
+  become: true

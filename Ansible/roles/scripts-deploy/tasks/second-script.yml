@@ -1,0 +1,60 @@
+---
+- name: Install postfix
+  package:
+    name:
+      - postfix
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Deploy second script
+  copy: 
+    src: files/secondscript.sh
+    dest: "{{ scripts_dir }}"
+    owner: root
+    group: root
+    mode: 0774
+  become: true
+
+- name: Add env variables
+  shell: echo {{ item }} >> {{ variable_type }}
+  loop:
+    - "export folder_size=400"
+    - "export files_count=3"
+  become: true
+
+- name: Source env variables
+  shell: source {{ variable_type }}
+  become: true
+  args:
+     executable: /bin/bash
+
+- name: Ensure entry like "{{ email }}" exists
+  cronvar:
+    name: MAILTO
+    value: "{{ email }}"
+  become: true
+
+- name: Add job to cron
+  cron:
+    name: "Check dirs"
+    minute: "*/5"
+    user: root
+    job: "sh {{ scripts_dir }}/secondscript.sh"
+    state: present
+  become: true
+
+- name: Create secondscript.service
+  ansible.builtin.template:
+    src: templates/secondscript.service
+    dest: /etc/systemd/system/secondscript.service
+    mode: 0755
+  become: true
+
+- name: Start and enabled secondscript.service
+  ansible.builtin.systemd:
+    name: secondscript
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: true

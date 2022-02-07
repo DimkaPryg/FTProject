@@ -1,0 +1,12 @@
+---
+- name: Install PostgreSQL
+  include_tasks: postgresql-install.yml
+
+- name: PostgreSQL configuration
+  include_tasks: postgresql-conf.yml
+
+# - name: DB fill
+#   include_tasks: db-fill.yml
+
+- name: Prometheus install
+  include_tasks: prometheus-install.yml

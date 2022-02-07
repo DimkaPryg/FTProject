@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+ExecStart={{prometheus_directory}}prometheus \
+    --config.file {{prometheus_directory}}prometheus.yml \
+    --storage.tsdb.path {{prometheus_directory_data}} \
+    --web.console.templates={{prometheus_directory}}consoles \
+    --web.console.libraries={{prometheus_directory}}console_libraries
+
+[Install]
+WantedBy=default.target

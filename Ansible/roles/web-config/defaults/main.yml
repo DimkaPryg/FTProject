@@ -1,0 +1,5 @@
+---
+certs_directory: /etc/nginx/certs
+app_directory: /var/www/app
+app_port: 8081
+app_file_mode: 0774

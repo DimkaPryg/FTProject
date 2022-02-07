@@ -1,0 +1,30 @@
+---
+- name: Copy to DB host drop.sql
+  copy: 
+    src: files/drop.sql
+    dest: drop.sql
+    mode: 0755
+  become: true
+
+- name: Run queries from SQL script
+  postgresql_query:
+    db: "{{db_name}}"
+    path_to_script: drop.sql
+    as_single_query: true
+  become: yes
+  become_user: postgres
+  ignore_errors: true
+
+- name: Ensure we have access from the "{{db_user}}"
+  postgresql_privs:
+    db: "{{db_name}}"
+    objs: ALL_IN_SCHEMA
+    roles: "{{ db_user }}"
+    privs: ALL
+  become: yes
+  become_user: postgres
+
+- name: Remove drop.sql
+  file:
+    path: drop.sql
+    state: absent

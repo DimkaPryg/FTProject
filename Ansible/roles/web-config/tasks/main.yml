@@ -1,0 +1,7 @@
+---
+- name: Nginx and nginx unit install
+  include_tasks: nginx-install.yml
+
+- name: Deploy python app
+  include_tasks: app-deploy.yml
+    

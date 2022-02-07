@@ -1,0 +1,50 @@
+---
+- name: Create a new lvm partitions
+  parted:
+    device: "{{ item }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  loop:
+    - /dev/sdc
+    - /dev/sdd
+  become: true
+
+- name: Create a PV and VG 
+  lvg:
+    vg: "{{ vg_name }}"
+    pvs: 
+      - /dev/sdc1
+      - /dev/sdd1
+  become: true
+
+- name: Create logical volume
+  lvol:
+      vg: "{{ vg_name }}"
+      lv:  "{{ lv_name }}"
+      size: 7g
+      force: yes
+  become: true
+  
+- name: Format xfs filesystem
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+  become: true
+
+- name: Ensure /local/files directory exists
+  file:
+    path: "/local/files"
+    state: directory
+    owner: root
+    group: root
+    mode: 0774
+  become: true
+
+- name: Mount /local/files
+  mount:
+    fstype: xfs
+    src: "/dev/{{ vg_name }}/{{ lv_name }}"
+    path: /local/files
+    state: mounted
+  become: true

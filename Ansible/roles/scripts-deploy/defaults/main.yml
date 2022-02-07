@@ -1,0 +1,6 @@
+---
+variable_type: /etc/environment
+email: DimkaPrig@gmail.com
+scripts_dir: /local/scripts
+files_dir: /local/files
+backups_dir: /local/backups

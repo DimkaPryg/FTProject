@@ -1,0 +1,11 @@
+iptables_persist: true
+iptables_dir: /iptables
+
+kernel_urls:
+  # - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-headers-5.17.0-051700rc2-generic_5.17.0-051700rc2.202201301431_amd64.deb
+  # - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-headers-5.17.0-051700rc2-lowlatency_5.17.0-051700rc2.202201301431_amd64.deb
+  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-headers-5.17.0-051700rc2_5.17.0-051700rc2.202201301431_all.deb
+  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-image-unsigned-5.17.0-051700rc2-generic_5.17.0-051700rc2.202201301431_amd64.deb
+  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-image-unsigned-5.17.0-051700rc2-lowlatency_5.17.0-051700rc2.202201301431_amd64.deb
+  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-modules-5.17.0-051700rc2-generic_5.17.0-051700rc2.202201301431_amd64.deb
+  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.17-rc2/amd64/linux-modules-5.17.0-051700rc2-lowlatency_5.17.0-051700rc2.202201301431_amd64.deb
